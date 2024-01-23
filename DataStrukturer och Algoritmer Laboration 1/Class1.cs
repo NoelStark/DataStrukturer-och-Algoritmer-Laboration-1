@@ -9,5 +9,9 @@
             Console.WriteLine("Test");
             Console.WriteLine("Test2");
         }
+        static void Die()
+        {
+            Console.WriteLine("Death");
+        }
     }
 }
