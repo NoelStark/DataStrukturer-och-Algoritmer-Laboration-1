@@ -2,21 +2,28 @@
 {
     public class Class1
     {
-        int i = 1;
 
         static void Main(string[] args)
         {
-            Console.WriteLine("Test");
-            Console.WriteLine("Test2");
+            string path = "test";
+            List<string> words = ReadWordsFromFile(path, 1000);
         }
 
-        public void DictionaryMethod()
+        public static List<string> ReadWordsFromFile(string path, int maxWords)
         {
-            Console.WriteLine("Något");
+            string text = File.ReadAllText(path);
+            string[] words = text.Split(' ', '\n', '\r', '\t', '.', ',');
+
+            List<string> selectedwords = words.Take(maxWords).ToList();
+
+            return selectedwords;
         }
-        static void Die()
+
+        static IEnumerable<KeyValuePair<string, int>> CountUsingList(string[] words)
         {
-            Console.WriteLine("Death");
+            List<KeyValuePair<string, int>> counters = new List<KeyValuePair<string, int>>();
+
+            return counters;
         }
     }
 }
