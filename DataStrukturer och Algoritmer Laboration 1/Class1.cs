@@ -9,5 +9,10 @@
             Console.WriteLine("Test");
             Console.WriteLine("Test2");
         }
+
+        public void DictionaryMethod()
+        {
+            Console.WriteLine("Något");
+        }
     }
 }
