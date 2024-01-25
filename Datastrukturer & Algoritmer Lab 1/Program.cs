@@ -27,27 +27,25 @@ namespace DataStrukturer_och_Algoritmer_Lab_1
                 string? line;
                 while ((line = streamReader.ReadLine().ToLower()) != null && myDictionary.Values.Sum() < maxWords)
                 {
-                    string[] words = line.Split(' ', '\n', '\t', '\r', ',', '.', ';', ':');
-                    foreach (var word in words)
-                    {
-                        if (!string.IsNullOrEmpty(word))
-                        {
-                            if (myDictionary.TryGetValue(word, out int count))
-                            {
-                                myDictionary[word] = count + 1;
-                            }
-                            else
-                            {
-                                myDictionary[word] = 1;
-                            }
-                        }
+                    var words = line.Split(' ', '\n', '\t', '\r', ',', '.', ';', ':').Where(x => !string.IsNullOrEmpty(x));
 
-                    }
+                    words.ToList().ForEach(word =>
+                    {
+                        if(myDictionary.TryGetValue(word, out int count))
+                        {
+                            myDictionary[word] = count + 1;
+                        }
+                        else
+                            myDictionary[word] = 1;
+                    });
+                  
                 }
             }
 
             return myDictionary;
         }
+
+
 
         static IEnumerable<KeyValuePair<string, int>> CountUsingSortedList(string path, int maxWords)
         {
@@ -57,22 +55,22 @@ namespace DataStrukturer_och_Algoritmer_Lab_1
                 string? line;
                 while ((line = streamReader.ReadLine().ToLower()) != null && mySortedList.Values.Sum() < maxWords)
                 {
-                    string[] words = line.Split(' ', '\n', '\t', '\r', ',', '.', ';', ':');
-                    foreach (var word in words)
+                    var words = line.Split(' ', '\n', '\t', '\r', ',', '.', ';', ':').Where(x => !string.IsNullOrEmpty(x));
+
+                    words.ToList().ForEach(word =>
                     {
-                        if (!string.IsNullOrEmpty(word))
+                        int index = mySortedList.IndexOfKey(word);
+                        if (index != -1)
                         {
-                            int index = mySortedList.IndexOfKey(word);
-                            if (index != -1)
-                            {
-                                mySortedList[word]++;
-                            }
-                            else
-                            {
-                                mySortedList.Add(word, 1);
-                            }
+                            mySortedList[word]++;
                         }
-                    }
+                        else
+                        {
+                            mySortedList.Add(word, 1);
+                        }
+
+                    });
+                    
                 }
             }
 
@@ -101,7 +99,7 @@ namespace DataStrukturer_och_Algoritmer_Lab_1
 
         static void Main(string[] args)
         {
-            string path = @"C:\Users\noelk\Downloads\Texts\Texts\Kipling_TheJungleBook.txt";
+            string path = @"F:\Downloads\Texts\Kipling_TheJungleBook.txt";
 
             List<double[]> timeSpans = new();
 
@@ -113,7 +111,7 @@ namespace DataStrukturer_och_Algoritmer_Lab_1
                 timeSpans.Add(Measure(() => CountUsingDictionary(path, 10000)));
 
             }
-            Console.WriteLine("Average over 10 readings: " + FormatTime(timeSpans[0].Average()) + " sec");
+            Console.WriteLine("Average over 10 readings using Dictionary: " + FormatTime(timeSpans[0].Average()) + " sec");
             Console.WriteLine("Average CPU over 10 readings: " + FormatTime(timeSpans[1].Average()) + " sec");
 
             timeSpans = new();
