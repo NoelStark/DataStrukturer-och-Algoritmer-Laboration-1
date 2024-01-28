@@ -1,5 +1,6 @@
 ﻿using System.Diagnostics;
 using System.IO;
+using System.Linq;
 
 namespace DataStrukturer_och_Algoritmer_Lab_1
 {
@@ -19,24 +20,41 @@ namespace DataStrukturer_och_Algoritmer_Lab_1
             return ElapsedTotalSeconds;
         }
 
+      
+
         static IEnumerable<KeyValuePair<string, int>> CountUsingDictionary(string path, int maxWords)
         {
             Dictionary<string, int> myDictionary = new();
+            bool reachedMaxWords = false;
+
             using (StreamReader streamReader = new StreamReader(path))
             {
                 string? line;
-                while ((line = streamReader.ReadLine().ToLower()) != null && myDictionary.Values.Sum() < maxWords)
+                while ((line = streamReader.ReadLine().ToLower()) != null && maxWords > 0)
                 {
                     var words = line.Split(' ', '\n', '\t', '\r', ',', '.', ';', ':').Where(x => !string.IsNullOrEmpty(x));
 
                     words.ToList().ForEach(word =>
                     {
-                        if(myDictionary.TryGetValue(word, out int count))
+                        if (!reachedMaxWords)
                         {
-                            myDictionary[word] = count + 1;
+                            if (myDictionary.TryGetValue(word, out int count))
+                            {
+                                myDictionary[word] = count + 1;
+                            }
+                            else
+                                myDictionary[word] = 1;
+
+                            if (maxWords > 0)
+                            {
+                                maxWords--;
+                                if (maxWords == 0)
+                                    reachedMaxWords = true;
+                            }
+                            else
+                                reachedMaxWords = true;
                         }
-                        else
-                            myDictionary[word] = 1;
+                       
                     });
                   
                 }
@@ -46,31 +64,41 @@ namespace DataStrukturer_och_Algoritmer_Lab_1
         }
 
 
-
         static IEnumerable<KeyValuePair<string, int>> CountUsingSortedList(string path, int maxWords)
         {
             SortedList<string, int> mySortedList = new();
+            bool reachedMaxWords = false;
             using (StreamReader streamReader = new StreamReader(path))
             {
                 string? line;
-                while ((line = streamReader.ReadLine().ToLower()) != null && mySortedList.Values.Sum() < maxWords)
+                while ((line = streamReader.ReadLine().ToLower()) != null && maxWords > 0)
                 {
                     var words = line.Split(' ', '\n', '\t', '\r', ',', '.', ';', ':').Where(x => !string.IsNullOrEmpty(x));
 
                     words.ToList().ForEach(word =>
                     {
-                        int index = mySortedList.IndexOfKey(word);
-                        if (index != -1)
+                        if (!reachedMaxWords)
                         {
-                            mySortedList[word]++;
-                        }
-                        else
-                        {
-                            mySortedList.Add(word, 1);
-                        }
+                            int index = mySortedList.IndexOfKey(word);
+                            if (index != -1)
+                                mySortedList[word]++;
 
+                            else
+                                mySortedList.Add(word, 1);
+
+                            if (maxWords > 0)
+                            {
+                                maxWords--;
+
+                                if(maxWords == 0)
+                                    reachedMaxWords = true;
+                            }
+                            else
+                                reachedMaxWords = true;
+                            
+                        }
+                        
                     });
-                    
                 }
             }
 
@@ -97,43 +125,137 @@ namespace DataStrukturer_och_Algoritmer_Lab_1
             return timesDoubles;
         }
 
-        static void Main(string[] args)
+        /// <summary>
+        /// Gets the amount of words in a file
+        /// </summary>
+        /// <param name="path">Path to the text file</param>
+        /// <returns></returns>
+        private static int CheckMaxWords(string path)
         {
-            string path = @"F:\Downloads\Texts\Kipling_TheJungleBook.txt";
-
-            List<double[]> timeSpans = new();
-
-
-            for (int i = 0; i < 10; i++)
+            int count = 0;
+            using (StreamReader streamReader = new StreamReader(path))
             {
-                Restart();
+                string? line;
+                while ((line = streamReader.ReadLine()) != null)
+                {
+                    var words = line.Split(' ', '\n', '\t', '\r', ',', '.', ';', ':').Where(x => !string.IsNullOrEmpty(x));
 
-                timeSpans.Add(Measure(() => CountUsingDictionary(path, 10000)));
-
+                    foreach (var word in words)
+                    {
+                        count++;
+                    }
+                }
             }
-            Console.WriteLine("Average over 10 readings using Dictionary: " + FormatTime(timeSpans[0].Average()) + " sec");
-            Console.WriteLine("Average CPU over 10 readings: " + FormatTime(timeSpans[1].Average()) + " sec");
 
-            timeSpans = new();
-
-            for (int i = 0; i <= 10; i++)
-            {
-                Restart();
-
-                timeSpans.Add(Measure(() => CountUsingSortedList(path, 10000)));
-
-            }
-            Console.WriteLine("Average over 10 readings: " + FormatTime(timeSpans[0].Average()) + " sec");
-            Console.WriteLine("Average CPU over 10 readings: " + FormatTime(timeSpans[1].Average()) + " sec");
+            return count;
         }
 
-        /*
-
-        static IEnumerable<KeyValuePair<string, int>> CountUsingList(string[] words)
+        /// <summary>
+        /// Reads all the information from the CSV file
+        /// </summary>
+        /// <param name="path">Path to the CSV File</param>
+        /// <param name="averageTimes">A list that contains all the average times in the CSV File</param>
+        /// <param name="averageCpuTimes">A list that contains all the average CPU times in the CSV File</param>
+        /// <param name="mostFrequentWords">A list containing the most frequent words</param>
+        /// <param name="uniqueWords">A list containing the amount of unique words</param>
+        static void ReadResultsFromCSV(string path, out List<string> averageTimes, out List<string> averageCpuTimes, out List<string> mostFrequentWords, out List<string> uniqueWords)
         {
-            List<KeyValuePair<string, int>> counters = new List<KeyValuePair<string, int>>();
+            averageTimes = new List<string>();
+            averageCpuTimes = new List<string>();
+            mostFrequentWords = new List<string>();
+            uniqueWords = new List<string>();
 
-            return counters;
-        }*/
+            using (StreamReader streamReader = new StreamReader(path))
+            {
+                streamReader.ReadLine();
+                while (!streamReader.EndOfStream)
+                {
+                    string line = streamReader.ReadLine();
+                    if (!string.IsNullOrEmpty(line))
+                    {
+                        string[] values = line.Split(',');
+                        averageTimes.Add(values[1]);
+                        averageCpuTimes.Add(values[2]);
+                        mostFrequentWords.Add(values[3]);
+                        uniqueWords.Add(values[4]);
+                    }
+                }
+            }
+        }
+        /// <summary>
+        /// Method responsible for printing information to the console
+        /// </summary>
+        /// <param name="path">Path to the CSV thats passed to another Method responsible for reading from CSV</param>
+        /// <param name="type">Variable containing what kind of ADT that is being used</param>
+        static void PrintResults(string path,string type)
+        {
+            List<string> averageTimes, averageCpuTimes, mostFrequentWords, uniqueWords;
+            ReadResultsFromCSV(path, out averageTimes, out averageCpuTimes, out mostFrequentWords, out uniqueWords);
+
+            string[] texts = { "Verne_TwentyThousandLeaguesUnderTheSea.txt" };
+
+            int wordCounts = CheckMaxWords(@"C:\Users\noelk\Downloads\Texts\Texts\Verne_TwentyThousandLeaguesUnderTheSea.txt");
+
+            Console.WriteLine($"--- Evaluating {type} with Text: {texts[0]} : {wordCounts} words ---");
+
+            Console.WriteLine("\nNumber of words\t\tRealtime (sec)\t\tCPU Time (sec)\t\tMost Frequent Word\tUnique Words");
+            for (int i = 0; i < averageTimes.Count; i++)
+            {
+                Console.WriteLine($"{i * 10000 + 10000}/{wordCounts}\t\t{averageTimes[i]:F6}\t\t{averageCpuTimes[i]:F6}\t\t{mostFrequentWords[i]}\t\t{uniqueWords[i]}");
+            }
+        }
+
+        /// <summary>
+        /// The method that runs the experiment and writes to file
+        /// </summary>
+        /// <param name="path">Path to the Text File</param>
+        /// <param name="csvFilePath">Path to the CSV File</param>
+        /// <param name="countMethod">A function that adds re-usability of code where you can pass in desired method handling different ADTs</param>
+        static void RunExperimentAndSaveToCSV(string path, string csvFilePath, Func<string, int, IEnumerable<KeyValuePair<string, int>>> countMethod)
+        {
+            List<double[]> timeSpans = new List<double[]>();
+
+            using (StreamWriter streamWriter = new StreamWriter(csvFilePath))
+            {
+                streamWriter.WriteLine("NumberOfWords,AverageTime,AverageCpuTime");
+                int maxWords = CheckMaxWords(path);
+                for (int i = 10000; i < maxWords; i += 10000)
+                {
+                    var myDictionary = countMethod(path, i);
+                    int uniques = myDictionary.Distinct().Count();
+
+                    var mostCommonWord = myDictionary.OrderByDescending(x => x.Value).FirstOrDefault();
+
+                    for (int j = 0; j < 10; j++)
+                    {
+                        Restart();
+                        timeSpans.Add(Measure(() => countMethod(path, i)));
+                    }
+
+                    string averageTime = FormatTime(timeSpans[0].Average());
+                    string averageCpuTime = FormatTime(timeSpans[1].Average());
+
+                    streamWriter.WriteLine($"{i},{averageTime},{averageCpuTime},{mostCommonWord.Key}({mostCommonWord.Value}),{uniques}");
+                    timeSpans.Clear();
+                }
+            }
+        }
+
+        static void Main(string[] args)
+        {
+            string path = @"C:\Users\noelk\Downloads\Texts\Texts\Verne_TwentyThousandLeaguesUnderTheSea.txt";
+            string csvFilePath = "times.csv";
+
+            // Run experiments for CountUsingDictionary
+            RunExperimentAndSaveToCSV(path, csvFilePath, CountUsingDictionary);
+            PrintResults(csvFilePath, "Dictionary");
+
+            // Run experiments for CountUsingSortedList
+            RunExperimentAndSaveToCSV(path, csvFilePath, CountUsingSortedList);
+            PrintResults(csvFilePath, "SortedList");
+
+
+        }
+
     }
 }
