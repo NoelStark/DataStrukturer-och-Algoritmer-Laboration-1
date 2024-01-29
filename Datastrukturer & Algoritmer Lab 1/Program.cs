@@ -19,8 +19,96 @@ namespace DataStrukturer_och_Algoritmer_Lab_1
             ElapsedTotalSeconds = Process.GetCurrentProcess().UserProcessorTime.TotalSeconds - processUserTimeStart;
             return ElapsedTotalSeconds;
         }
+        static IEnumerable<KeyValuePair<string, int>> CountUsingList(string path, int maxWords)
+        {
+            List<KeyValuePair<string, int>> myList = new List<KeyValuePair<string, int>>();
+            bool reachedMaxWords = false;
+            using (StreamReader streamReader = new StreamReader(path))
+            {
+                string line;
+                while ((line = streamReader.ReadLine().ToLower()) != null && maxWords > 0)
+                {
+                    var words = line.Split(' ', '\n', '\t', '\r', ',', '.', ';', ':').Where(x => !string.IsNullOrEmpty(x));
 
-      
+                    words.ToList().ForEach(word =>
+                    {
+                        if (!reachedMaxWords)
+                        {
+                            var existingItem = myList.FindIndex(x => x.Key == word);
+                            //int index = myList.IndexOfKey(word);
+                            if (existingItem != -1)
+                            {
+                                var item = myList[existingItem];
+                                myList[existingItem] = new KeyValuePair<string, int>(item.Key, item.Value + 1);
+                            }
+                            else
+                            {
+                                myList.Add(new KeyValuePair<string, int>(word, 1));
+                            }
+
+                            if (maxWords > 0)
+                            {
+                                maxWords--;
+
+                                if (maxWords == 0)
+                                    reachedMaxWords = true;
+                            }
+                            else
+                                reachedMaxWords = true;
+
+                        }
+
+                    });
+                }
+            }
+
+            return myList;
+        }
+
+        static IEnumerable<KeyValuePair<string, int>> CountUsingSortedDictionary(string path, int maxWords)
+        {
+            SortedDictionary<string, int> mySortedDictionary = new SortedDictionary<string, int>();
+            bool reachedMaxWords = false;
+
+            using (StreamReader streamReader = new StreamReader(path))
+            {
+                string line;
+                while ((line = streamReader.ReadLine().ToLower()) != null && maxWords > 0)
+                {
+                    var words = line.Split(' ', '\n', '\t', '\r', ',', '.', ';', ':').Where(x => !string.IsNullOrEmpty(x));
+
+                    words.ToList().ForEach(word =>
+                    {
+                        if (!reachedMaxWords)
+                        {
+                            if (mySortedDictionary.ContainsKey(word))
+                            {
+                                mySortedDictionary[word]++;
+                            }
+                            else
+                            {
+                                mySortedDictionary.Add(word, 1);
+                            }
+
+                            if (maxWords > 0)
+                            {
+                                maxWords--;
+                                if (maxWords == 0)
+                                    reachedMaxWords = true;
+                            }
+                            else
+                                reachedMaxWords = true;
+                        }
+
+                    });
+
+                }
+            }
+
+            return mySortedDictionary;
+        }
+
+
 
         static IEnumerable<KeyValuePair<string, int>> CountUsingDictionary(string path, int maxWords)
         {
