@@ -1,7 +1,7 @@
 ﻿using System.Diagnostics;
 using System.IO;
 using System.Linq;
-
+using Utilities;
 namespace DataStrukturer_och_Algoritmer_Lab_1
 {
     public class Program
@@ -104,6 +104,45 @@ namespace DataStrukturer_och_Algoritmer_Lab_1
 
             return mySortedList;
         }
+        static IEnumerable<KeyValuePair<string, int>> CountUsingBinaryTree(string path, int maxWords)
+        {
+            BinarySearchTree<string, int> binaryTree = new();
+            bool reachedMaxWords = false;
+            using (StreamReader streamReader = new StreamReader(path))
+            {
+                string? line;
+                while ((line = streamReader.ReadLine().ToLower()) != null && maxWords > 0)
+                {
+                    var words = line.Split(' ', '\n', '\t', '\r', ',', '.', ';', ':').Where(x => !string.IsNullOrEmpty(x));
+
+                    words.ToList().ForEach(word =>
+                    {
+                        if (!reachedMaxWords)
+                        {
+                            if (binaryTree.Contains(word))
+                                binaryTree[word]++;
+                            else
+                            binaryTree.Add(word, 1);
+
+                            if (maxWords > 0)
+                            {
+                                maxWords--;
+
+                                if (maxWords == 0)
+                                    reachedMaxWords = true;
+                            }
+                            else
+                                reachedMaxWords = true;
+
+                        }
+
+                    });
+                }
+            }
+
+            return binaryTree;
+        }
+
 
 
         static string FormatTime(double ms)
@@ -114,14 +153,14 @@ namespace DataStrukturer_och_Algoritmer_Lab_1
 
         static double[] Measure(Action action)
         {
+            double[] timesDoubles = new double[2];
+
             Restart();
             Stopwatch sw = Stopwatch.StartNew();
             action();
-            Stop();
             sw.Stop();
-            double[] timesDoubles = new double[2];
-            timesDoubles[0] = sw.ElapsedMilliseconds;
             timesDoubles[1] = Stop();
+            timesDoubles[0] = sw.ElapsedMilliseconds;
             return timesDoubles;
         }
 
@@ -194,7 +233,7 @@ namespace DataStrukturer_och_Algoritmer_Lab_1
 
             string[] texts = { "Verne_TwentyThousandLeaguesUnderTheSea.txt" };
 
-            int wordCounts = CheckMaxWords(@"C:\Users\noelk\Downloads\Texts\Texts\Verne_TwentyThousandLeaguesUnderTheSea.txt");
+            int wordCounts = CheckMaxWords(@"F:\Downloads\Texts\Verne_TwentyThousandLeaguesUnderTheSea.txt");
 
             Console.WriteLine($"--- Evaluating {type} with Text: {texts[0]} : {wordCounts} words ---");
 
@@ -243,17 +282,22 @@ namespace DataStrukturer_och_Algoritmer_Lab_1
 
         static void Main(string[] args)
         {
-            string path = @"C:\Users\noelk\Downloads\Texts\Texts\Verne_TwentyThousandLeaguesUnderTheSea.txt";
+            string path = @"F:\Downloads\Texts\Verne_TwentyThousandLeaguesUnderTheSea.txt";
             string csvFilePath = "times.csv";
+
+            Stopwatch sw = new Stopwatch();
+            sw.Start();
 
             // Run experiments for CountUsingDictionary
             RunExperimentAndSaveToCSV(path, csvFilePath, CountUsingDictionary);
             PrintResults(csvFilePath, "Dictionary");
-
+ 
             // Run experiments for CountUsingSortedList
             RunExperimentAndSaveToCSV(path, csvFilePath, CountUsingSortedList);
             PrintResults(csvFilePath, "SortedList");
 
+            RunExperimentAndSaveToCSV(path, csvFilePath, CountUsingBinaryTree);
+            PrintResults(csvFilePath, "SortedList");
 
         }
 
