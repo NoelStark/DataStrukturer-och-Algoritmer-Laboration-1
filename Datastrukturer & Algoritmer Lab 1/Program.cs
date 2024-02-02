@@ -1,4 +1,5 @@
-﻿using System.Diagnostics;
+﻿using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using Utilities;
@@ -6,23 +7,26 @@ namespace DataStrukturer_och_Algoritmer_Lab_1
 {
     public class Program
     {
+        // Properties to store elapsed time information
         public static double ElapsedTotalSeconds { get; private set; }
         private static double processUserTimeStart;
 
+        // Method to restart the process user time measurement
         public static void Restart()
         {
             processUserTimeStart = Process.GetCurrentProcess().UserProcessorTime.TotalSeconds;
         }
-
+        // Method to stop the process user time measurement and return the elapsed time
         public static double Stop()
         {
             ElapsedTotalSeconds = Process.GetCurrentProcess().UserProcessorTime.TotalSeconds - processUserTimeStart;
             return ElapsedTotalSeconds;
         }
+
+        // Method to count word occurrences using a List
         static IEnumerable<KeyValuePair<string, int>> CountUsingList(string path, int maxWords)
         {
             List<KeyValuePair<string, int>> myList = new List<KeyValuePair<string, int>>();
-            bool reachedMaxWords = false;
             using (StreamReader streamReader = new StreamReader(path))
             {
                 string line;
@@ -30,16 +34,17 @@ namespace DataStrukturer_och_Algoritmer_Lab_1
                 {
                     var words = line.Split(' ', '\n', '\t', '\r', ',', '.', ';', ':').Where(x => !string.IsNullOrEmpty(x));
 
-                    words.ToList().ForEach(word =>
+
+                    foreach (var word in words)
                     {
-                        if (!reachedMaxWords)
+                        if (!string.IsNullOrEmpty(word))
                         {
                             var existingItem = myList.FindIndex(x => x.Key == word);
-                            //int index = myList.IndexOfKey(word);
                             if (existingItem != -1)
                             {
                                 var item = myList[existingItem];
                                 myList[existingItem] = new KeyValuePair<string, int>(item.Key, item.Value + 1);
+                                
                             }
                             else
                             {
@@ -49,26 +54,23 @@ namespace DataStrukturer_och_Algoritmer_Lab_1
                             if (maxWords > 0)
                             {
                                 maxWords--;
-
                                 if (maxWords == 0)
-                                    reachedMaxWords = true;
+                                    break;
                             }
-                            else
-                                reachedMaxWords = true;
-
                         }
+                    }
 
-                    });
+                  
                 }
             }
 
             return myList;
         }
 
+        // Method to count word occurrences using a SortedDictionary
         static IEnumerable<KeyValuePair<string, int>> CountUsingSortedDictionary(string path, int maxWords)
         {
             SortedDictionary<string, int> mySortedDictionary = new SortedDictionary<string, int>();
-            bool reachedMaxWords = false;
 
             using (StreamReader streamReader = new StreamReader(path))
             {
@@ -77,13 +79,13 @@ namespace DataStrukturer_och_Algoritmer_Lab_1
                 {
                     var words = line.Split(' ', '\n', '\t', '\r', ',', '.', ';', ':').Where(x => !string.IsNullOrEmpty(x));
 
-                    words.ToList().ForEach(word =>
+                    foreach (var word in words)
                     {
-                        if (!reachedMaxWords)
+                        if (!string.IsNullOrEmpty(word))
                         {
-                            if (mySortedDictionary.ContainsKey(word))
+                            if (mySortedDictionary.TryGetValue(word, out int count))
                             {
-                                mySortedDictionary[word]++;
+                                mySortedDictionary[word] = count + 1;
                             }
                             else
                             {
@@ -94,13 +96,10 @@ namespace DataStrukturer_och_Algoritmer_Lab_1
                             {
                                 maxWords--;
                                 if (maxWords == 0)
-                                    reachedMaxWords = true;
+                                    break;
                             }
-                            else
-                                reachedMaxWords = true;
                         }
-
-                    });
+                    }
 
                 }
             }
@@ -109,11 +108,10 @@ namespace DataStrukturer_och_Algoritmer_Lab_1
         }
 
 
-
+        // Method to count word occurrences using a Dictionary
         static IEnumerable<KeyValuePair<string, int>> CountUsingDictionary(string path, int maxWords)
         {
             Dictionary<string, int> myDictionary = new();
-            bool reachedMaxWords = false;
 
             using (StreamReader streamReader = new StreamReader(path))
             {
@@ -122,40 +120,38 @@ namespace DataStrukturer_och_Algoritmer_Lab_1
                 {
                     var words = line.Split(' ', '\n', '\t', '\r', ',', '.', ';', ':').Where(x => !string.IsNullOrEmpty(x));
 
-                    words.ToList().ForEach(word =>
+                    foreach (var word in words)
                     {
-                        if (!reachedMaxWords)
+                        if (!string.IsNullOrEmpty(word))
                         {
                             if (myDictionary.TryGetValue(word, out int count))
                             {
                                 myDictionary[word] = count + 1;
                             }
                             else
-                                myDictionary[word] = 1;
+                            {
+                                myDictionary.Add(word, 1);
+                            }
 
                             if (maxWords > 0)
                             {
                                 maxWords--;
                                 if (maxWords == 0)
-                                    reachedMaxWords = true;
+                                    break;
                             }
-                            else
-                                reachedMaxWords = true;
                         }
-                       
-                    });
-                  
+                    }
+
                 }
             }
 
             return myDictionary;
         }
 
-
+        // Method to count word occurrences using a SortedList
         static IEnumerable<KeyValuePair<string, int>> CountUsingSortedList(string path, int maxWords)
         {
             SortedList<string, int> mySortedList = new();
-            bool reachedMaxWords = false;
             using (StreamReader streamReader = new StreamReader(path))
             {
                 string? line;
@@ -163,39 +159,38 @@ namespace DataStrukturer_och_Algoritmer_Lab_1
                 {
                     var words = line.Split(' ', '\n', '\t', '\r', ',', '.', ';', ':').Where(x => !string.IsNullOrEmpty(x));
 
-                    words.ToList().ForEach(word =>
+                    foreach(var word in words)
                     {
-                        if (!reachedMaxWords)
+                        if (!string.IsNullOrEmpty(word))
                         {
-                            int index = mySortedList.IndexOfKey(word);
-                            if (index != -1)
-                                mySortedList[word]++;
-
+                            if (mySortedList.TryGetValue(word, out int count))
+                            {
+                                mySortedList[word] = count + 1;
+                            }
                             else
+                            {
                                 mySortedList.Add(word, 1);
+                            }
 
                             if (maxWords > 0)
                             {
                                 maxWords--;
-
-                                if(maxWords == 0)
-                                    reachedMaxWords = true;
+                                if (maxWords == 0)
+                                    break;
                             }
-                            else
-                                reachedMaxWords = true;
-                            
                         }
-                        
-                    });
+                    }
+                   
                 }
             }
 
             return mySortedList;
         }
+
+        // Method to count word occurrences using a Binary Search Tree
         static IEnumerable<KeyValuePair<string, int>> CountUsingBinaryTree(string path, int maxWords)
         {
             BinarySearchTree<string, int> binaryTree = new();
-            bool reachedMaxWords = false;
             using (StreamReader streamReader = new StreamReader(path))
             {
                 string? line;
@@ -203,42 +198,35 @@ namespace DataStrukturer_och_Algoritmer_Lab_1
                 {
                     var words = line.Split(' ', '\n', '\t', '\r', ',', '.', ';', ':').Where(x => !string.IsNullOrEmpty(x));
 
-                    words.ToList().ForEach(word =>
+                    foreach (var word in words)
                     {
-                        if (!reachedMaxWords)
+                        if (!string.IsNullOrEmpty(word))
                         {
+                            //If the word already exists, the count gets increased by 1
                             if (binaryTree.Contains(word))
+                            {
                                 binaryTree[word]++;
+                            }
                             else
-                            binaryTree.Add(word, 1);
+                            {
+                                binaryTree.Add(word, 1);
+                            }
 
                             if (maxWords > 0)
                             {
                                 maxWords--;
-
                                 if (maxWords == 0)
-                                    reachedMaxWords = true;
+                                    break;
                             }
-                            else
-                                reachedMaxWords = true;
-
                         }
-
-                    });
+                    }
                 }
             }
 
             return binaryTree;
         }
 
-
-
-        static string FormatTime(double ms)
-        {
-            TimeSpan timespan = TimeSpan.FromMilliseconds(ms);
-            return timespan.ToString(@"ss\:fffff");
-        }
-
+        // Method to measure the elapsed time and CPU time of a given action
         static double[] Measure(Action action)
         {
             double[] timesDoubles = new double[2];
@@ -247,16 +235,13 @@ namespace DataStrukturer_och_Algoritmer_Lab_1
             Stopwatch sw = Stopwatch.StartNew();
             action();
             sw.Stop();
+            //First item has the RealTime while the second item has the CPU time
             timesDoubles[1] = Stop();
             timesDoubles[0] = sw.ElapsedMilliseconds;
             return timesDoubles;
         }
 
-        /// <summary>
-        /// Gets the amount of words in a file
-        /// </summary>
-        /// <param name="path">Path to the text file</param>
-        /// <returns></returns>
+        // Method to check the maximum number of words in a text file
         private static int CheckMaxWords(string path)
         {
             int count = 0;
@@ -298,6 +283,8 @@ namespace DataStrukturer_och_Algoritmer_Lab_1
                 while (!streamReader.EndOfStream)
                 {
                     string line = streamReader.ReadLine();
+
+                    //Puts the different values into Lists
                     if (!string.IsNullOrEmpty(line))
                     {
                         string[] values = line.Split(',');
@@ -321,14 +308,14 @@ namespace DataStrukturer_och_Algoritmer_Lab_1
 
             string[] texts = { "Verne_TwentyThousandLeaguesUnderTheSea.txt" };
 
-            int wordCounts = CheckMaxWords(@"F:\Downloads\Texts\Verne_TwentyThousandLeaguesUnderTheSea.txt");
+            int wordCounts = CheckMaxWords(@"C:\Users\noelk\Downloads\Texts\Texts\Verne_TwentyThousandLeaguesUnderTheSea.txt");
 
             Console.WriteLine($"--- Evaluating {type} with Text: {texts[0]} : {wordCounts} words ---");
 
             Console.WriteLine("\nNumber of words\t\tRealtime (sec)\t\tCPU Time (sec)\t\tMost Frequent Word\tUnique Words");
             for (int i = 0; i < averageTimes.Count; i++)
             {
-                Console.WriteLine($"{i * 10000 + 10000}/{wordCounts}\t\t{averageTimes[i]:F6}\t\t{averageCpuTimes[i]:F6}\t\t{mostFrequentWords[i]}\t\t{uniqueWords[i]}");
+                Console.WriteLine($"{i * 10000 + 10000}/{wordCounts}\t\t{averageTimes[i].Replace(',',':')}\t\t{averageCpuTimes[i].Replace(',', ':')}\t\t{mostFrequentWords[i]}\t\t{uniqueWords[i]}");
             }
         }
 
@@ -346,47 +333,60 @@ namespace DataStrukturer_och_Algoritmer_Lab_1
             {
                 streamWriter.WriteLine("NumberOfWords,AverageTime,AverageCpuTime");
                 int maxWords = CheckMaxWords(path);
+                
                 for (int i = 10000; i < maxWords; i += 10000)
                 {
-                    var myDictionary = countMethod(path, i);
-                    int uniques = myDictionary.Distinct().Count();
+                    var myStructure = countMethod(path, i);
+                    int uniques = myStructure.Distinct().Count();
 
-                    var mostCommonWord = myDictionary.OrderByDescending(x => x.Value).FirstOrDefault();
+                    //Gets the most common word
+                    var mostCommonWord = myStructure.OrderByDescending(x => x.Value).FirstOrDefault();
+                    double averageRunTime = 0;
+                    double averageCpuRunTime = 0;
 
+                    //Runs each experiment 10 times to get an average
                     for (int j = 0; j < 10; j++)
                     {
-                        Restart();
                         timeSpans.Add(Measure(() => countMethod(path, i)));
+                        averageRunTime = timeSpans[j][0];
+                        averageCpuRunTime = timeSpans[j][1];
+
                     }
 
-                    string averageTime = FormatTime(timeSpans[0].Average());
-                    string averageCpuTime = FormatTime(timeSpans[1].Average());
+                    string averageTime = ((averageRunTime/10) / 1000).ToString("0.000000");
+                    string averageCpuTime = (averageCpuRunTime/10).ToString("0.000000");
 
-                    streamWriter.WriteLine($"{i},{averageTime},{averageCpuTime},{mostCommonWord.Key}({mostCommonWord.Value}),{uniques}");
+                    streamWriter.WriteLine($"{i},{averageTime.Replace(',', ':')},{averageCpuTime.Replace(',', ':')},{mostCommonWord.Key}({mostCommonWord.Value}),{uniques}");
                     timeSpans.Clear();
                 }
             }
         }
 
+        // Main method to run experiments and print results for different ADTs
         static void Main(string[] args)
         {
-            string path = @"F:\Downloads\Texts\Verne_TwentyThousandLeaguesUnderTheSea.txt";
+            string path = @"C:\Users\noelk\Downloads\Texts\Texts\Verne_TwentyThousandLeaguesUnderTheSea.txt";
             string csvFilePath = "times.csv";
-
-            Stopwatch sw = new Stopwatch();
-            sw.Start();
-
+           
             // Run experiments for CountUsingDictionary
             RunExperimentAndSaveToCSV(path, csvFilePath, CountUsingDictionary);
             PrintResults(csvFilePath, "Dictionary");
- 
+
+            RunExperimentAndSaveToCSV(path, csvFilePath, CountUsingList);
+            PrintResults(csvFilePath, "List");
+
             // Run experiments for CountUsingSortedList
             RunExperimentAndSaveToCSV(path, csvFilePath, CountUsingSortedList);
             PrintResults(csvFilePath, "SortedList");
 
-            RunExperimentAndSaveToCSV(path, csvFilePath, CountUsingBinaryTree);
-            PrintResults(csvFilePath, "SortedList");
 
+            RunExperimentAndSaveToCSV(path, csvFilePath, CountUsingBinaryTree);
+            PrintResults(csvFilePath, "Binary Tree");
+
+            RunExperimentAndSaveToCSV(path, csvFilePath, CountUsingSortedDictionary);
+            PrintResults(csvFilePath, "Sorted Dictionary");
+
+           
         }
 
     }
